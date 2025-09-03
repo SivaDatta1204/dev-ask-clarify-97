@@ -70,15 +70,24 @@ export function EditQuestionModal({ isOpen, onClose, onSubmit, question }: EditQ
     onClose();
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      onClose();
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      handleSubmit(e as any);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" onKeyDown={handleKeyDown}>
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">Edit Question</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Title */}
           <div className="space-y-2">
             <Label htmlFor="edit-title">Question Title *</Label>
             <Input
@@ -87,10 +96,10 @@ export function EditQuestionModal({ isOpen, onClose, onSubmit, question }: EditQ
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="text-lg"
+              autoFocus
             />
           </div>
 
-          {/* Content */}
           <div className="space-y-2">
             <Label htmlFor="edit-content">Question Details *</Label>
             <Textarea
@@ -101,9 +110,11 @@ export function EditQuestionModal({ isOpen, onClose, onSubmit, question }: EditQ
               rows={8}
               className="resize-none"
             />
+            <p className="text-xs text-muted-foreground">
+              Tip: Press Ctrl+Enter (Cmd+Enter on Mac) to save quickly
+            </p>
           </div>
 
-          {/* Tags */}
           <div className="space-y-2">
             <Label htmlFor="edit-tags">Tags</Label>
             <div className="flex gap-2">
@@ -137,7 +148,6 @@ export function EditQuestionModal({ isOpen, onClose, onSubmit, question }: EditQ
             )}
           </div>
 
-          {/* Action Buttons */}
           <div className="flex justify-end gap-3 pt-4 border-t">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel

@@ -49,34 +49,46 @@ export function EditReplyModal({ isOpen, onClose, onSubmit, reply }: EditReplyMo
     onClose();
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      onClose();
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      handleSubmit(e as any);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl" onKeyDown={handleKeyDown}>
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">Edit Reply</DialogTitle>
+          <DialogTitle className="text-xl font-semibold">Edit Answer</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Content */}
           <div className="space-y-2">
-            <Label htmlFor="edit-reply-content">Reply Content *</Label>
+            <Label htmlFor="edit-reply-content">Answer Content *</Label>
             <Textarea
               id="edit-reply-content"
               placeholder="Share your solution, advice, or thoughts..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              rows={6}
+              rows={8}
               className="resize-none"
+              autoFocus
             />
+            <p className="text-xs text-muted-foreground">
+              Tip: Press Ctrl+Enter (Cmd+Enter on Mac) to save quickly
+            </p>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex justify-end gap-3 pt-4 border-t">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
             <Button type="submit">
-              Update Reply
+              Update Answer
             </Button>
           </div>
         </form>
