@@ -223,6 +223,14 @@ export default function QuestionDetail() {
     ));
   };
 
+  const handleUpvoteQuestion = () => {
+    setQuestion({ ...question, upvotes: question.upvotes + 1 });
+  };
+
+  const handleDownvoteQuestion = () => {
+    setQuestion({ ...question, downvotes: (question.downvotes || 0) + 1 });
+  };
+
   const handleAddComment = (replyId: string, content: string) => {
     const newComment = {
       id: Date.now().toString(),

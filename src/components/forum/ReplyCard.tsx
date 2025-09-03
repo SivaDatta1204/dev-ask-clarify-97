@@ -56,94 +56,102 @@ export function ReplyCard({
         </div>
       )}
       
-      <div className="prose max-w-none mb-4">
-        <p className="text-foreground whitespace-pre-wrap">{reply.content}</p>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => onUpvote(reply.id)}
-              className="flex items-center gap-1 px-2"
-            >
-              <ArrowUp className="w-4 h-4" />
-            </Button>
-            <span className="text-sm font-medium min-w-[2rem] text-center">
-              {reply.upvotes - reply.downvotes}
-            </span>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => onDownvote(reply.id)}
-              className="flex items-center gap-1 px-2"
-            >
-              <ArrowDown className="w-4 h-4" />
-            </Button>
+      <div className="flex gap-6">
+        {/* Voting Section - Left Side */}
+        <div className="flex flex-col items-center gap-2 min-w-[60px]">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => onUpvote(reply.id)}
+            className="h-8 w-8 p-0 rounded-full hover:bg-muted transition-colors"
+          >
+            <ArrowUp className="w-5 h-5" />
+          </Button>
+          
+          <div className="text-lg font-bold text-center min-w-[2rem] py-1">
+            {reply.upvotes - reply.downvotes}
           </div>
+          
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => onDownvote(reply.id)}
+            className="h-8 w-8 p-0 rounded-full hover:bg-muted transition-colors"
+          >
+            <ArrowDown className="w-5 h-5" />
+          </Button>
           
           {canModerate && !reply.isAccepted && (
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={() => onAccept(reply.id)}
-              className="text-forum-success hover:text-forum-success"
+              className="h-8 w-8 p-0 rounded-full text-forum-success hover:bg-forum-success/10 mt-2"
+              title="Accept Answer"
             >
-              <CheckCircle className="w-4 h-4 mr-1" />
-              Accept Answer
+              <CheckCircle className="w-5 h-5" />
             </Button>
           )}
-          
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setShowComments(!showComments)}
-            className="flex items-center gap-1"
-          >
-            <MessageSquare className="w-4 h-4" />
-            <span>{reply.comments?.length || 0} comments</span>
-          </Button>
         </div>
-
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Calendar className="w-4 h-4" />
-              <span>{reply.createdAt}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
-                <span className="text-white text-xs">{reply.author.charAt(0)}</span>
-              </div>
-              <span>{reply.author}</span>
-            </div>
+        
+        {/* Content Section - Right Side */}
+        <div className="flex-1">
+          <div className="prose max-w-none mb-4">
+            <p className="text-foreground whitespace-pre-wrap">{reply.content}</p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => onEdit(reply)}
-            >
-              <Edit className="w-4 h-4" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => onDelete(reply.id)}
-              className="text-destructive hover:text-destructive"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setShowComments(!showComments)}
+                className="flex items-center gap-1"
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span>{reply.comments?.length || 0} comments</span>
+              </Button>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <Calendar className="w-4 h-4" />
+                  <span>{reply.createdAt}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs">{reply.author.charAt(0)}</span>
+                  </div>
+                  <span>{reply.author}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => onEdit(reply)}
+                >
+                  <Edit className="w-4 h-4" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => onDelete(reply.id)}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Comments Section */}
       {showComments && (
-        <div className="mt-4 pt-4 border-t">
+        <div className="mt-4 pt-4 border-t ml-[84px]">
           <div className="space-y-3">
             {reply.comments?.map((comment) => (
               <CommentCard
