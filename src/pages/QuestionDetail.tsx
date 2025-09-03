@@ -12,6 +12,7 @@ import { Header } from "@/components/forum/Header";
 import { ReplyCard } from "@/components/forum/ReplyCard";
 import { EditQuestionModal } from "@/components/forum/EditQuestionModal";
 import { EditReplyModal } from "@/components/forum/EditReplyModal";
+import { EditCommentModal } from "@/components/forum/EditCommentModal";
 import { useToast } from "@/hooks/use-toast";
 
 // Mock data - in real app, this would come from API
@@ -125,6 +126,8 @@ export default function QuestionDetail() {
   const [isEditQuestionModalOpen, setIsEditQuestionModalOpen] = useState(false);
   const [isEditReplyModalOpen, setIsEditReplyModalOpen] = useState(false);
   const [editingReply, setEditingReply] = useState<any>(null);
+  const [isEditCommentModalOpen, setIsEditCommentModalOpen] = useState(false);
+  const [editingComment, setEditingComment] = useState<any>(null);
   const [showQuestionComments, setShowQuestionComments] = useState(false);
   const [showQuestionCommentForm, setShowQuestionCommentForm] = useState(false);
   const [questionComments, setQuestionComments] = useState([
@@ -241,11 +244,17 @@ export default function QuestionDetail() {
   };
 
   const handleEditComment = (comment: any) => {
-    // Implementation for editing comments
-    toast({
-      title: "Info",
-      description: "Comment editing not implemented yet",
-    });
+    setEditingComment(comment);
+    setIsEditCommentModalOpen(true);
+  };
+
+  const handleUpdateComment = (updatedComment: any) => {
+    setReplies(replies.map(reply => ({
+      ...reply,
+      comments: reply.comments?.map(comment => 
+        comment.id === updatedComment.id ? updatedComment : comment
+      ) || []
+    })));
   };
 
   const handleDeleteComment = (commentId: string) => {
@@ -278,10 +287,14 @@ export default function QuestionDetail() {
   };
 
   const handleEditQuestionComment = (comment: any) => {
-    toast({
-      title: "Info",
-      description: "Comment editing not implemented yet",
-    });
+    setEditingComment(comment);
+    setIsEditCommentModalOpen(true);
+  };
+
+  const handleUpdateQuestionComment = (updatedComment: any) => {
+    setQuestionComments(questionComments.map(comment => 
+      comment.id === updatedComment.id ? updatedComment : comment
+    ));
   };
 
   const handleDeleteQuestionComment = (commentId: string) => {
@@ -432,6 +445,31 @@ export default function QuestionDetail() {
             )}
           </div>
 
+          {/* New Reply Form */}
+          <div className="bg-card border rounded-lg p-6 mb-6">
+            <h3 className="text-lg font-semibold mb-4">Post Your Answer</h3>
+            
+            <form onSubmit={handleSubmitReply}>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="reply-content">Share your solution or advice</Label>
+                  <Textarea
+                    id="reply-content"
+                    placeholder="Help solve this question..."
+                    value={newReply}
+                    onChange={(e) => setNewReply(e.target.value)}
+                    rows={6}
+                    className="resize-none"
+                  />
+                </div>
+                
+                <div className="flex justify-end">
+                  <Button type="submit">Post Answer</Button>
+                </div>
+              </div>
+            </form>
+          </div>
+
           {/* Replies */}
           <div className="mb-6">
             <h2 className="text-xl font-semibold mb-4">
@@ -457,30 +495,6 @@ export default function QuestionDetail() {
             </div>
           </div>
 
-          {/* New Reply Form */}
-          <div className="bg-card border rounded-lg p-6">
-            <h3 className="text-lg font-semibold mb-4">Your Reply</h3>
-            
-            <form onSubmit={handleSubmitReply}>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="reply-content">Share your solution or advice</Label>
-                  <Textarea
-                    id="reply-content"
-                    placeholder="Help solve this question..."
-                    value={newReply}
-                    onChange={(e) => setNewReply(e.target.value)}
-                    rows={6}
-                    className="resize-none"
-                  />
-                </div>
-                
-                <div className="flex justify-end">
-                  <Button type="submit">Post Reply</Button>
-                </div>
-              </div>
-            </form>
-          </div>
         </main>
       </div>
 
@@ -496,6 +510,20 @@ export default function QuestionDetail() {
         onClose={() => setIsEditReplyModalOpen(false)}
         onSubmit={handleUpdateReply}
         reply={editingReply}
+      />
+
+      <EditCommentModal
+        isOpen={isEditCommentModalOpen}
+        onClose={() => setIsEditCommentModalOpen(false)}
+        onSubmit={(updatedComment) => {
+          // Determine if it's a question comment or reply comment based on the comment structure
+          if (questionComments.some(c => c.id === updatedComment.id)) {
+            handleUpdateQuestionComment(updatedComment);
+          } else {
+            handleUpdateComment(updatedComment);
+          }
+        }}
+        comment={editingComment}
       />
     </div>
   );
