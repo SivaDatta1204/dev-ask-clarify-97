@@ -1,10 +1,8 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ArrowUp, ArrowDown, Eye, Edit, CheckCircle, MessageSquare } from "lucide-react";
+import { ArrowLeft, ArrowUp, ArrowDown, Eye, Edit, CheckCircle, MessageSquare, Plus } from "lucide-react";
 import { CommentCard } from "@/components/forum/CommentCard";
 import { CommentForm } from "@/components/forum/CommentForm";
 import { Sidebar } from "@/components/forum/Sidebar";
@@ -13,6 +11,8 @@ import { ReplyCard } from "@/components/forum/ReplyCard";
 import { EditQuestionModal } from "@/components/forum/EditQuestionModal";
 import { EditReplyModal } from "@/components/forum/EditReplyModal";
 import { EditCommentModal } from "@/components/forum/EditCommentModal";
+import { NewReplyModal } from "@/components/forum/NewReplyModal";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { useToast } from "@/hooks/use-toast";
 
 // Mock data - in real app, this would come from API
@@ -122,7 +122,7 @@ export default function QuestionDetail() {
   
   const [question, setQuestion] = useState<any>(mockQuestion);
   const [replies, setReplies] = useState(mockReplies);
-  const [newReply, setNewReply] = useState("");
+  const [isNewReplyModalOpen, setIsNewReplyModalOpen] = useState(false);
   const [isEditQuestionModalOpen, setIsEditQuestionModalOpen] = useState(false);
   const [isEditReplyModalOpen, setIsEditReplyModalOpen] = useState(false);
   const [editingReply, setEditingReply] = useState<any>(null);
@@ -130,6 +130,8 @@ export default function QuestionDetail() {
   const [editingComment, setEditingComment] = useState<any>(null);
   const [showQuestionComments, setShowQuestionComments] = useState(false);
   const [showQuestionCommentForm, setShowQuestionCommentForm] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const repliesPerPage = 5;
   const [questionComments, setQuestionComments] = useState([
     {
       id: "qc1",
@@ -139,21 +141,10 @@ export default function QuestionDetail() {
     }
   ]);
 
-  const handleSubmitReply = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!newReply.trim()) {
-      toast({
-        title: "Error",
-        description: "Please provide your reply content",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleSubmitReply = (content: string) => {
     const reply = {
       id: Date.now().toString(),
-      content: newReply.trim(),
+      content,
       author: "Current User",
       createdAt: "Just now",
       upvotes: 0,
@@ -162,12 +153,6 @@ export default function QuestionDetail() {
     };
 
     setReplies([...replies, reply]);
-    setNewReply("");
-    
-    toast({
-      title: "Success",
-      description: "Your reply has been posted!",
-    });
   };
 
   const handleEditQuestion = (updatedQuestion: any) => {
@@ -314,6 +299,15 @@ export default function QuestionDetail() {
     });
   };
 
+  const totalPages = Math.ceil(replies.length / repliesPerPage);
+  const startIndex = (currentPage - 1) * repliesPerPage;
+  const paginatedReplies = replies.slice(startIndex, startIndex + repliesPerPage);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'solved': return 'bg-forum-success';
@@ -453,39 +447,25 @@ export default function QuestionDetail() {
             )}
           </div>
 
-          {/* New Reply Form */}
+          {/* New Answer Button */}
           <div className="bg-card border rounded-lg p-6 mb-6">
-            <h3 className="text-lg font-semibold mb-4">Post Your Answer</h3>
-            
-            <form onSubmit={handleSubmitReply}>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="reply-content">Share your solution or advice</Label>
-                  <Textarea
-                    id="reply-content"
-                    placeholder="Help solve this question..."
-                    value={newReply}
-                    onChange={(e) => setNewReply(e.target.value)}
-                    rows={6}
-                    className="resize-none"
-                  />
-                </div>
-                
-                <div className="flex justify-end">
-                  <Button type="submit">Post Answer</Button>
-                </div>
-              </div>
-            </form>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Want to help solve this question?</h3>
+              <Button onClick={() => setIsNewReplyModalOpen(true)} className="gap-2">
+                <Plus className="w-4 h-4" />
+                Post Your Answer
+              </Button>
+            </div>
           </div>
 
           {/* Replies */}
           <div className="mb-6">
             <h2 className="text-xl font-semibold mb-4">
-              {replies.length} {replies.length === 1 ? 'Reply' : 'Replies'}
+              {replies.length} {replies.length === 1 ? 'Answer' : 'Answers'}
             </h2>
             
             <div className="space-y-4">
-              {replies.map((reply) => (
+              {paginatedReplies.map((reply) => (
                 <ReplyCard
                   key={reply.id}
                   reply={reply}
@@ -500,7 +480,61 @@ export default function QuestionDetail() {
                   canModerate={true} // In real app, this would be based on user permissions
                 />
               ))}
+              
+              {replies.length === 0 && (
+                <div className="text-center py-12 text-muted-foreground">
+                  <p>No answers yet. Be the first to help!</p>
+                </div>
+              )}
             </div>
+
+            {/* Pagination for Replies */}
+            {totalPages > 1 && (
+              <div className="mt-8 flex justify-center">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNumber;
+                      if (totalPages <= 5) {
+                        pageNumber = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNumber = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNumber = totalPages - 4 + i;
+                      } else {
+                        pageNumber = currentPage - 2 + i;
+                      }
+                      
+                      return (
+                        <PaginationItem key={pageNumber}>
+                          <PaginationLink
+                            onClick={() => handlePageChange(pageNumber)}
+                            isActive={currentPage === pageNumber}
+                            className="cursor-pointer"
+                          >
+                            {pageNumber}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    })}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
           </div>
 
         </main>
@@ -518,6 +552,12 @@ export default function QuestionDetail() {
         onClose={() => setIsEditReplyModalOpen(false)}
         onSubmit={handleUpdateReply}
         reply={editingReply}
+      />
+
+      <NewReplyModal
+        isOpen={isNewReplyModalOpen}
+        onClose={() => setIsNewReplyModalOpen(false)}
+        onSubmit={handleSubmitReply}
       />
 
       <EditCommentModal

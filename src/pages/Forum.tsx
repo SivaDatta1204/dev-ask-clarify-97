@@ -6,6 +6,7 @@ import { Sidebar } from "@/components/forum/Sidebar";
 import { Header } from "@/components/forum/Header";
 import { QuestionCard } from "@/components/forum/QuestionCard";
 import { NewQuestionModal } from "@/components/forum/NewQuestionModal";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { useNavigate } from "react-router-dom";
 
 const mockQuestions = [
@@ -64,6 +65,8 @@ export default function Forum() {
   const [isNewQuestionModalOpen, setIsNewQuestionModalOpen] = useState(false);
   const [sortBy, setSortBy] = useState("newest");
   const [filterBy, setFilterBy] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const questionsPerPage = 10;
   const navigate = useNavigate();
 
   const handleNewQuestion = (newQuestion: any) => {
@@ -91,6 +94,15 @@ export default function Forum() {
         return 0; // In real app, would sort by actual date
     }
   });
+
+  const totalPages = Math.ceil(sortedQuestions.length / questionsPerPage);
+  const startIndex = (currentPage - 1) * questionsPerPage;
+  const paginatedQuestions = sortedQuestions.slice(startIndex, startIndex + questionsPerPage);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -175,7 +187,7 @@ export default function Forum() {
 
           {/* Questions List */}
           <div className="space-y-4">
-            {sortedQuestions.map((question) => (
+            {paginatedQuestions.map((question) => (
               <QuestionCard
                 key={question.id}
                 question={question}
@@ -183,6 +195,54 @@ export default function Forum() {
               />
             ))}
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="mt-8 flex justify-center">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                  
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNumber;
+                    if (totalPages <= 5) {
+                      pageNumber = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNumber = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNumber = totalPages - 4 + i;
+                    } else {
+                      pageNumber = currentPage - 2 + i;
+                    }
+                    
+                    return (
+                      <PaginationItem key={pageNumber}>
+                        <PaginationLink
+                          onClick={() => handlePageChange(pageNumber)}
+                          isActive={currentPage === pageNumber}
+                          className="cursor-pointer"
+                        >
+                          {pageNumber}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  })}
+                  
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
 
           {sortedQuestions.length === 0 && (
             <div className="text-center py-12">
